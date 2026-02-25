@@ -620,14 +620,14 @@ STRICT RULES:
 Schema: [{"sno":"1","tc_id":"${abbr}TC001","created_by":"muthukrishnan","product_name":"${activeProd.name}","module":"${fullModule}","functionality":"...","tc_type":"Positive","test_scenario":"...","test_case_description":"Step 1: ...\nStep 2: ...","expected_result":"...","actual_result":"As Expected","status":"Pass","defect":"N/A","tested_by":"muthukrishnan","tested_date":"${date}","comments":"N/A"}]`;
 
   try {
-    const res = await fetch("/api/claude",{
-      method:"POST", headers:{"Content-Type":"application/json","x-api-key": window._apiKey},
+    const res = await fetch("https://api.anthropic.com/v1/messages",{
+      method:"POST", headers:{"Content-Type":"application/json","x-api-key":window._apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
       body:JSON.stringify({
         model:"claude-sonnet-4-20250514", max_tokens:4096, system:sys,
         messages:[{role:"user",content:`CR: ${cr}\nProduct: ${activeProd.name} (${catLabel})\nModule: ${fullModule}\n\nSRS/Requirement:\n${srs}\n\nReturn ONLY JSON array.`}]
       })
     });
-    const resText = await res.text(); let data; try { data = JSON.parse(resText); } catch(e) { throw new Error('Server error: ' + resText.substring(0,200)); }
+    const data = await res.json();
     if (data.error) throw new Error(data.error.message || JSON.stringify(data.error));
     if (!data.content || !Array.isArray(data.content)) throw new Error("API Error: " + JSON.stringify(data).substring(0,300));
     const raw2 = data.content.map(c=>c.text||"").join("");
